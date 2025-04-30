@@ -181,5 +181,5 @@ def spheredistance(lon1:float,
     dist = 6371.01 * acos(sin(lat1)*sin(lat2) + cos(lat1)*cos(lat2)*cos(lon1 - lon2)) #I guess the mean radius of the earth is 6371.01km
     return dist
 
-lon, lat, du, dv, bounds = getdvx("hycom2016/010_archv_2016_001_00_2d.nc", Latitude=(29.5, 30.5), Longitude=(-81.5, -80.5))
+lon, lat, du, dv, bounds = getdvx("hycom2016/010_archv_2016_001_00_2d.nc", Longitude=(-81.5, -80.5), Latitude=(29.5, 30.5))
 plotdvx(lon, lat, du, dv, bounds, 15)
