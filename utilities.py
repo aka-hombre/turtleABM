@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 from typing import Tuple, List, Optional
 import numpy as np
-from math import radians, sin, cos, acos
+from pyproj import Geod
 
 def getdvx(fullfilename,  
                   Longitude=None,
@@ -161,25 +161,31 @@ def plotdvx(lon: np.ndarray,
         print(f"Unexpected error: {str(e)}")
         raise
 
-def spheredistance(lon1:float, 
-                   lat1:float, 
-                   lon2: float,
-                   lat2: float)-> float:
+def geoarea(bounds:np.ndarray)-> float:
     """
-    Takes the coordinates of two points (lon,lat) and finds the distance (km) between them on a sphere. 
-    Note: this is not entirely accurate, but suffices to get some stuff started
+    Takes the area of a ploygon on the earth (m^2). 
+    Note: this is approximation.
 
     Args:
-        lon1: first point's logitudal position
-        lat1: first point's latitudal position
-        lon2: second point's longitudal position
-        lat2: second point's latiudal position   
-
+        bounds:  An array containg (lon_min, lon_max, lat_min, lat_max)
     Returns:
-        dist: float of distance between points in km
+        area: float of the area of the polygon created by the bounds
+    Example:
+        >>> lonlat, velocities, bounds = getvelocities("currents.nc", Latitude=slice(29.5, 30.5))
+        >>> print(geoarea(bounds))
     """
-    dist = 6371.01 * acos(sin(lat1)*sin(lat2) + cos(lat1)*cos(lat2)*cos(lon1 - lon2)) #I guess the mean radius of the earth is 6371.01km
-    return dist
+    lon_min, lon_max, lat_min, lat_max = bounds
+    
+    # Define polygon edges (closed loop)
+    lons = [lon_min, lon_min, lon_max, lon_max, lon_min] 
+    lats = [lat_min, lat_max, lat_max, lat_min, lat_min]
+    
+    # Compute area using cartopy's
+    geod = Geod(ellps="WGS84")
+    area, _ = geod.polygon_area_perimeter(lons, lats)
+    
+    return abs(area)
 
 lon, lat, du, dv, bounds = getdvx("hycom2016/010_archv_2016_001_00_2d.nc", Longitude=(-81.5, -80.5), Latitude=(29.5, 30.5))
+print(geoarea(bounds))
 plotdvx(lon, lat, du, dv, bounds, 15)
