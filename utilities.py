@@ -3,18 +3,18 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 from typing import Tuple, List, Optional
 import numpy as np
+from math import radians, sin, cos, acos
 
-def getdvx(fullfilename, 
-                  Latitude=None, 
-                  Longitude=None)-> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, Optional[Tuple[float, float, float, float]]]:
+def getdvx(fullfilename,  
+                  Longitude=None,
+                  Latitude=None,)-> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, Optional[Tuple[float, float, float, float]]]:
     """
     Extract velocity data and positional grids from a netCDF file.
 
     Args:
         fullfilename: Path to the netCDF file containing ocean current data.
-        Latitude: Slice object defining the latitude range (min, max). If None, uses full range.
         Longitude: Slice object defining the longitude range (min, max). If None, uses full range.
-
+        Latitude: Slice object defining the latitude range (min, max). If None, uses full range.
     Returns:
         lon2d: 2D array of longitudes.
         lat2d: 2D array of latitudes.
@@ -161,6 +161,25 @@ def plotdvx(lon: np.ndarray,
         print(f"Unexpected error: {str(e)}")
         raise
 
+def spheredistance(lon1:float, 
+                   lat1:float, 
+                   lon2: float,
+                   lat2: float)-> float:
+    """
+    Takes the coordinates of two points (lon,lat) and finds the distance (km) between them on a sphere. 
+    Note: this is not entirely accurate, but suffices to get some stuff started
+
+    Args:
+        lon1: first point's logitudal position
+        lat1: first point's latitudal position
+        lon2: second point's longitudal position
+        lat2: second point's latiudal position   
+
+    Returns:
+        dist: float of distance between points in km
+    """
+    dist = 6371.01 * acos(sin(lat1)*sin(lat2) + cos(lat1)*cos(lat2)*cos(lon1 - lon2)) #I guess the mean radius of the earth is 6371.01km
+    return dist
 
 lon, lat, du, dv, bounds = getdvx("hycom2016/010_archv_2016_001_00_2d.nc", Latitude=(29.5, 30.5), Longitude=(-81.5, -80.5))
 plotdvx(lon, lat, du, dv, bounds, 15)
