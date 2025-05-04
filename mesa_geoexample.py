@@ -8,6 +8,9 @@ import random
 import geopandas as gpd
 
 class Turtle(mg.GeoAgent):
+    """
+    Agent to model turtle behavior
+    """
     def __init__(self, model, geometry, move, crs):
         super().__init__( model, geometry, crs)
         self.move = move
@@ -15,28 +18,23 @@ class Turtle(mg.GeoAgent):
         return f"Person {self.unique_id}"
     
     def step(self):
-        print(f"Old position is ({self.geometry.x}, {self.geometry.y})")
         dx = random.uniform(-self.move, self.move)
         dy = random.uniform(-self.move, self.move)
         new_position = Point(self.geometry.x + dx, self.geometry.y + dy)
         if self.model.boundary_polygon.contains(new_position):
             self.geometry = new_position
-        print(f"New position is ({self.geometry.x}, {self.geometry.y})")
 
 
 
 class MovingModel(mesa.Model):
-    def __init__(self, num_agents=1, move=5):
+    def __init__(self, num_agents=15, move=5):
         super().__init__()
 
-        self.gdf = gpd.read_file("geojsondata/leftofgs.geojson")
+        self.gdf = gpd.read_file("geojsondata/model_area.geojson")
         self.boundary_polygon = self.gdf.union_all()
 
         self.space = GeoSpace(crs=self.gdf.crs, warn_crs_conversion=False)
         self.num_agents = num_agents
-
-        # Initialize AgentCreator properly
-        #agent_creator = mg.AgentCreator(Turtle, model=self, crs=self.gdf.crs)
 
         for _ in range(num_agents):
             while True:
@@ -87,7 +85,7 @@ page = SolaraViz(
         make_geospace_component(
             Turtle_draw,
             zoom=5,
-            scroll_wheel_zoom=True
+            scroll_wheel_zoom=False
         ),
     ],
 )

@@ -72,7 +72,6 @@ def getdvx(fullfilename,
 
     u_data = u.isel(depth=0, time=0).values
     v_data = v.isel(depth=0, time=0).values
-    print(u_data)
 
     bounds = [lon.min(), lon.max(), lat.min(), lat.max()] if Latitude and Longitude else None
     return lon2d, lat2d, u_data, v_data, bounds
@@ -217,8 +216,43 @@ for feature in geojson_data["features"]:
 with open("modified.geojson", "w") as f:
     json.dump(geojson_data, f, indent=2)
 
-'''
 
+b = get_bounds('geojsondata/model_area.geojson')
 lon, lat, du, dv, bounds = getdvx("hycom2016/expt_91_uv3z.nc", Longitude=(b[0], b[2]), Latitude=(b[1], b[3]))
 
-plotdvx(lon, lat, du, dv, bounds, 15)
+plotdvx(lon, lat, du, dv, bounds, 10, 15)
+
+import xarray as xr
+from scipy.interpolate import RegularGridInterpolator
+import numpy as np
+
+class CurrentField:
+    def __init__(self, nc_file, u_var="u", v_var="v", lat_var="latitude", lon_var="longitude", time_index=0):
+        # Load data from .nc file
+        self.ds = xr.open_dataset(nc_file)
+
+        # Extract variables
+        self.lats = self.ds[lat_var].values
+        self.lons = self.ds[lon_var].values
+
+        # Extract U and V components for one time step (if time dimension exists)
+        u_data = self.ds[u_var]
+        v_data = self.ds[v_var]
+
+        if "time" in u_data.dims:
+            u_data = u_data.isel(time=time_index)
+            v_data = v_data.isel(time=time_index)
+
+        # Handle shape: (lat, lon)
+        self.interp_u = RegularGridInterpolator((self.lats, self.lons), u_data.values, bounds_error=False, fill_value=0.0)
+        self.interp_v = RegularGridInterpolator((self.lats, self.lons), v_data.values, bounds_error=False, fill_value=0.0)
+
+    def get_vector(self, lon, lat):
+        """
+        Sample the current vector (u, v) at a given lon, lat.
+        """
+        point = np.array([[lat, lon]])  # interpolators use (lat, lon) order
+        u = self.interp_u(point)[0]
+        v = self.interp_v(point)[0]
+        return u, v
+'''
