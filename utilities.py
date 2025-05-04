@@ -1,15 +1,23 @@
 import xarray as xr
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 from typing import Tuple, List, Optional
 import numpy as np
 from pyproj import Geod
+import json
+from processing import get_bounds
 
 def getdvx(fullfilename,  
                   Longitude=None,
                   Latitude=None,)-> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, Optional[Tuple[float, float, float, float]]]:
     """
-    Extract velocity data and positional grids from a netCDF file.
+    Extract velocity data and positional grids from a netCDF file. 
+    Note: This function works specifically for /thredds/ncss/GLBu0.08/expt_91.2/uv3 datastructure. 
+    Upon submitting the request for the data, the request for the rectagualar grid was specified with coordinates. The original
+    slicing logic was using the Gulf database, and working with that specific .nc data structure.: 
+    
 
     Args:
         fullfilename: Path to the netCDF file containing ocean current data.
@@ -44,8 +52,8 @@ def getdvx(fullfilename,
     else:
         lon_slice = slice(None)
     try:
-        u = ds['u_barotropic_velocity'].sel(Latitude=lat_slice, Longitude=lon_slice)
-        v = ds['v_barotropic_velocity'].sel(Latitude=lat_slice, Longitude=lon_slice)
+        u = ds['water_u']
+        v = ds['water_v']
     except KeyError as e:
         print(f"Error: Variable not found in dataset - {str(e)}")
     except ValueError as e:
@@ -56,13 +64,15 @@ def getdvx(fullfilename,
             print("Error: Longitude out of bounds")
         else:
             print(f"Error: {str(e)}")
-    
-    lat = u['Latitude'].values
-    lon = u['Longitude'].values
+
+    lat = u['lat'].values
+    lon = u['lon'].values
+
     lon2d, lat2d = np.meshgrid(lon, lat)
 
-    u_data = u.isel(MT=0).values
-    v_data = v.isel(MT=0).values
+    u_data = u.isel(depth=0, time=0).values
+    v_data = v.isel(depth=0, time=0).values
+    print(u_data)
 
     bounds = [lon.min(), lon.max(), lat.min(), lat.max()] if Latitude and Longitude else None
     return lon2d, lat2d, u_data, v_data, bounds
@@ -136,7 +146,7 @@ def plotdvx(lon: np.ndarray,
 
             # Plot vectors
             quiver = ax.quiver(lon_sub, lat_sub, du_sub, dv_sub, 
-                             scale=5, transform=ccrs.PlateCarree())
+                             scale=10, transform=ccrs.PlateCarree())
 
             title = "Barotropic Velocity Vectors"
             if bounds is not None:
@@ -186,6 +196,27 @@ def geoarea(bounds:np.ndarray)-> float:
     
     return abs(area)
 
-lon, lat, du, dv, bounds = getdvx("hycom2016/010_archv_2016_001_00_2d.nc", Longitude=(-81.5, -80.5), Latitude=(29.5, 30.5))
-print(geoarea(bounds))
+
+
+'''
+# Example usage
+
+with open("geojsondata/gspoly.geojson", "r") as f:
+    geojson_data = json.load(f)
+
+
+for feature in geojson_data["features"]:
+    if feature.get("id") == 2:
+        coords = feature["geometry"]["coordinates"]
+        feature["geometry"]["coordinates"] = coords[::-1]  # Reverse the outer list
+        break
+
+# Save to file
+with open("modified.geojson", "w") as f:
+    json.dump(geojson_data, f, indent=2)
+
+'''
+
+lon, lat, du, dv, bounds = getdvx("hycom2016/expt_91_uv3z.nc", Longitude=(b[0], b[2]), Latitude=(b[1], b[3]))
+
 plotdvx(lon, lat, du, dv, bounds, 15)
