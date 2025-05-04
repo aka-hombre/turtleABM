@@ -8,22 +8,25 @@ import random
 import geopandas as gpd
 
 class Turtle(mg.GeoAgent):
-    def __init__(self, model, geometry, crs):
+    def __init__(self, model, geometry, move, crs):
         super().__init__( model, geometry, crs)
+        self.move = move
     def __repr__(self):
         return f"Person {self.unique_id}"
     
     def step(self):
-        print(f"Old position is ({self.pos.x}, {self.pos.y})")
-        dx = random.uniform(-5, 5)
-        dy = random.uniform(-5, 5)
-        new_position = Point(self.pos.x + dx, self.pos.y + dy)
+        print(f"Old position is ({self.geometry.x}, {self.geometry.y})")
+        dx = random.uniform(-self.move, self.move)
+        dy = random.uniform(-self.move, self.move)
+        new_position = Point(self.geometry.x + dx, self.geometry.y + dy)
         if self.model.boundary_polygon.contains(new_position):
-            self.pos = new_position
-        print(f"New position is ({self.pos.x}, {self.pos.y})")
+            self.geometry = new_position
+        print(f"New position is ({self.geometry.x}, {self.geometry.y})")
+
+
 
 class MovingModel(mesa.Model):
-    def __init__(self, num_agents=1):
+    def __init__(self, num_agents=1, move=5):
         super().__init__()
 
         self.gdf = gpd.read_file("geojsondata/leftofgs.geojson")
@@ -33,7 +36,7 @@ class MovingModel(mesa.Model):
         self.num_agents = num_agents
 
         # Initialize AgentCreator properly
-        agent_creator = mg.AgentCreator(Turtle, model=self, crs=self.gdf.crs)
+        #agent_creator = mg.AgentCreator(Turtle, model=self, crs=self.gdf.crs)
 
         for _ in range(num_agents):
             while True:
@@ -42,8 +45,8 @@ class MovingModel(mesa.Model):
                 y = random.uniform(miny, maxy)
                 point = Point(x, y)
                 if self.boundary_polygon.contains(point):
-                    agent = agent_creator.create_agent(geometry=point)
-                    agent.pos = point
+                    agent = Turtle(self, point, move, self.gdf.crs)
+                    #agent.pos = point
                     self.space.add_agents(agent)
                     break
 
@@ -53,9 +56,6 @@ class MovingModel(mesa.Model):
 
 
 model = MovingModel()
-#model.step()
-
-
 
 def Turtle_draw(agent):
     return {"color": "Green", "radius": 10} if isinstance(agent, Turtle) else {}
@@ -68,6 +68,14 @@ model_params = {
         "min": 1,
         "max": 100,
         "step": 1,
+    },
+    "move":{
+        "type": "SliderInt",
+        "value": 11,
+        "label": "move",
+        "min": 1,
+        "max": 100000,
+        "step": 100,
     }
 }
 
