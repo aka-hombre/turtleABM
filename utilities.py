@@ -82,6 +82,7 @@ def plotdvx(lon: np.ndarray,
             du: np.ndarray, 
             dv: np.ndarray, 
             bounds: Optional[List[float]] = None,
+            scale: Optional[float] = 5,
             skip: Optional[int] = None) -> None:
     """
     Plots 2D velocity vectors on a geographic map using longitude and latitude grids.
@@ -93,6 +94,7 @@ def plotdvx(lon: np.ndarray,
         dv: 2D array of v-component velocities (northward).
         bounds: Optional list/tuple of [lon_min, lon_max, lat_min, lat_max] for plot extent.
                If None, uses the min/max of input lon/lat arrays.
+        scale: Optional float values of scale for quiver function.
         skip: Optional integer specifying stride for plotting vectors (plot every nth point).
               If None or 1, plots all vectors. Must be ≥ 1.
 
@@ -146,7 +148,7 @@ def plotdvx(lon: np.ndarray,
 
             # Plot vectors
             quiver = ax.quiver(lon_sub, lat_sub, du_sub, dv_sub, 
-                             scale=10, transform=ccrs.PlateCarree())
+                             scale=scale, transform=ccrs.PlateCarree())
 
             title = "Barotropic Velocity Vectors"
             if bounds is not None:
