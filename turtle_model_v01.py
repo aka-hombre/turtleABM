@@ -1,4 +1,4 @@
-from shapely.geometry import Point
+from shapely.geometry import Point, LineString
 import mesa
 from mesa.visualization import SolaraViz
 import mesa_geo as mg
@@ -10,6 +10,7 @@ import geopandas as gpd
 #for accurately moving agents
 from geopy.distance import distance
 from geopy import Point as GeoPyPoint
+from pyproj import Geod
 
 class Turtle(mg.GeoAgent):
     """
@@ -20,24 +21,52 @@ class Turtle(mg.GeoAgent):
     def __repr__(self):
         return f"Person {self.unique_id}"
     
+    
+
     def move(self):
-        print(f"{self.geometry}")
-        angle = random.uniform(0, 2 * math.pi)
-        distance_km = random.uniform(1.091, 1.239) 
+        geod = Geod(ellps="WGS84")
+        distance_km = random.uniform(1.091, 1.239)
+        distance_m = distance_km * 1000  # pyproj uses meters
 
-        origin = GeoPyPoint(self.geometry.y, self.geometry.x)  # lat, lon
+        print(f"\nCurrent location: {self.geometry.x}, {self.geometry.y}")
+        lon, lat = self.geometry.x, self.geometry.y
 
-        destination = distance(kilometers=distance_km).destination(origin, angle)
+        # Random direction in degrees
+        angle = random.uniform(0, 360)
 
-        new_position = Point(destination.longitude, destination.latitude)
+        # Compute destination using pyproj.Geod
+        dest_lon, dest_lat, _ = geod.fwd(lon, lat, angle, distance_m)
+        new_position = Point(dest_lon, dest_lat)
 
-        if self.model.boundary_polygon.contains(new_position):
+        # Check if within polygon
+        if not self.model.boundary_polygon.boundary.intersects(new_position) and self.model.boundary_polygon.contains(new_position):
             self.geometry = new_position
+        else:
+            print("First attempt failed — trying to bounce outward.")
+            boundary = self.model.boundary_polygon.boundary
+            nearest_boundary_point = boundary.interpolate(boundary.project(self.geometry))
+            print(f"Nearest boundary point: {nearest_boundary_point}")
+
+            # Compute geodesic azimuth from boundary to current point
+            b_lon, b_lat = nearest_boundary_point.x, nearest_boundary_point.y
+            _, azimuth_to_agent, _ = geod.inv(b_lon, b_lat, lon, lat)
+
+            # Bounce back: reverse the azimuth
+            outward_azimuth = (azimuth_to_agent + 180) % 360
+
+            # Compute new destination in outward direction
+            bounce_lon, bounce_lat, _ = geod.fwd(lon, lat, outward_azimuth, distance_m)
+            new_position = Point(bounce_lon, bounce_lat)
+            print(f"Second attempt destination: {new_position}")
+
+            if not self.model.boundary_polygon.boundary.intersects(new_position) and self.model.boundary_polygon.contains(new_position):
+                self.geometry = new_position
+                print("Second attempt succeeded.")
+            else:
+                print("Second attempt failed.")
 
     def step(self):
-        #print(f"{self.geometry.x}, {self.geometry.y}")
         self.move()
-        print(f"{self.geometry.x}, {self.geometry.y}")
 
 
 
@@ -45,7 +74,7 @@ class MovingModel(mesa.Model):
     def __init__(self, num_agents=15):
         super().__init__()
 
-        self.gdf = gpd.read_file("geojsondata/model_area.geojson")
+        self.gdf = gpd.read_file("geojsondata/gspoly.geojson")
         self.boundary_polygon = self.gdf.union_all()
 
         self.space = GeoSpace(crs=self.gdf.crs, warn_crs_conversion=False)
