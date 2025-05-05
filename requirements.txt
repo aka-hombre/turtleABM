@@ -23,7 +23,9 @@ fastjsonschema==2.21.1
 filelock==3.18.0
 folium==0.19.5
 fonttools==4.57.0
+geographiclib==2.0
 geopandas==1.0.1
+geopy==2.4.1
 h11==0.16.0
 humanize==4.12.3
 idna==3.10

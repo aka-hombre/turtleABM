@@ -60,6 +60,13 @@ def get_bounds(filename):
 print('Bounds:'+str(get_bounds('geojsondata/model_area.geojson')))
 
 
+g = gpd.read_file('geojsondata/model_area.geojson')
+fig, ax = plt.subplots(figsize=(10, 8))
+
+g.plot(ax=ax,color='orange', edgecolor='red', linewidth=0.5)
+plt.show()
+
+
 '''
 #right = gpd.read_file('geojsondata/gspoly.geojson')
 
@@ -73,11 +80,11 @@ fig, ax = plt.subplots(figsize=(10, 8))
 newshore.plot(ax=ax, color='salmon', edgecolor='magenta', linewidth=0.5)
 #lgs.plot(ax=ax, color='lightblue', edgecolor='darkblue', linewidth=0.5)
 #right.plot(ax=ax, color='orange', edgecolor='red', linewidth=0.5)
-#sargasso.plot(ax=ax, color='salmon', edgecolor='magenta', linewidth=0.5)
+#s
 plt.title('Sea and FL')
 plt.axis('off')
 plt.show()
-coords = [
+cargasso.plot(ax=ax, color='salmon', edgecolor='magenta', linewidth=0.5)oords = [
     (-76.57702860978428, 38.514803910605934),
     (-67.4271326757245, 48.01014307612323)
 ]

@@ -70,8 +70,9 @@ def getdvx(fullfilename,
 
     lon2d, lat2d = np.meshgrid(lon, lat)
 
-    u_data = u.isel(depth=0, time=0).values
-    v_data = v.isel(depth=0, time=0).values
+    # Kate mansfield paper: "Turtles largely remained ino ceanicwaters off the Coninental Shelf (greater than 200 mdepth)"
+    u_data = u.isel(depth=200, time=0).values
+    v_data = v.isel(depth=200, time=0).values
 
     bounds = [lon.min(), lon.max(), lat.min(), lat.max()] if Latitude and Longitude else None
     return lon2d, lat2d, u_data, v_data, bounds
