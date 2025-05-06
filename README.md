@@ -1,6 +1,6 @@
-#🐢turtleABM
+# 🐢turtleABM
 
-tutleABM is the beginings of a geospatially explicit Agent Based Model to analyze sea turtles. A lot of relevant questions someone might have when it comes to look into conservation efforts, are inherently geographic. 
+### tutleABM is the beginings of a geospatially explicit Agent Based Model to analyze sea turtles. A lot of relevant questions someone might have when it comes to look into conservation efforts, are inherently geographic. 
 ---
 To install the repository:
 1. Clone the repository into perfered directory
