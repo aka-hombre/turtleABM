@@ -4,9 +4,9 @@ tutleABM is the beginings of a geospatially explicit Agent Based Model to analyz
 ---
 To install the repository:
 1. Clone the repository into perfered directory
-  '''
+  ```
   git clone https://github.com/aka-hombre/turtleABM.git
-  '''
+  ```
 2. Change directory
   ```
   cd .../turtleABM/
