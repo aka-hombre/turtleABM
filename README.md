@@ -1,6 +1,8 @@
 # 🐢turtleABM
 
-### turtleABM is the beginings of a geospatially explicit Agent Based Model to analyze sea turtles. A lot of relevant questions someone might have when it comes to look into conservation efforts are inherently geographic. 
+### turtleABM is the beginings of a geospatially explicit Agent Based Model to analyze sea turtles. A lot of relevant questions someone might have when it comes to look into conservation efforts are inherently geographic.
+---
+This project is made using mesa and geo_mesa
 ---
 To install the repository:
 1. Clone the repository into perfered directory
