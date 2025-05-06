@@ -71,6 +71,7 @@ prompt_toolkit==3.0.51
 psutil==7.0.0
 ptyprocess==0.7.0
 pure_eval==0.2.3
+pydeps==3.0.1
 Pygments==2.19.1
 pymdown-extensions==10.15
 pyogrio==0.10.0
@@ -100,6 +101,7 @@ solara-ui==1.47.0
 soupsieve==2.7
 stack-data==0.6.3
 starlette==0.46.2
+stdlib-list==0.11.1
 threadpoolctl==3.6.0
 tornado==6.4.2
 tqdm==4.67.1
